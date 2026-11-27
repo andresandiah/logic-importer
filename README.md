@@ -29,6 +29,7 @@ what to check or fix by hand.
 | In Logic Pro | In LUNA |
 |---|---|
 | Tracks, names and order | Tracks and buses |
+| Track colors | Similar colors on tracks, buses and folders in Logic's track list |
 | **Summing Stacks** | **Summing folders**, including nested ones |
 | Folder Stacks | Grouping folders (without their mixer settings) |
 | Outputs, sends, volume, pan, mute and solo | Routing and mixer |
@@ -165,6 +166,8 @@ The uninstaller has not been tested yet.
 
 ## Known limitations
 
+- Track colors are close matches sampled from a screenshot of Logic's picker. Channels that are
+  not in Logic's track list keep LUNA's default color.
 - LUNA cannot load Logic's own plug-ins or instruments. To keep their sound, you can export
   those tracks as audio from Logic.
 - A third-party plug-in loads only if the importer finds its match in LUNA.
@@ -173,7 +176,7 @@ The uninstaller has not been tested yet.
 - Side-chains must be assigned by hand.
 - Stereo balance, fade shapes and automation curves may differ.
 - Not transferred: region transpose and reverse, region loops (only the first pass is placed),
-  region or relative automation, and track colors.
+  and region or relative automation.
 - Not checked: Flex, Take Folders, groups, VCAs, Smart Controls and surround.
 - Only the first project alternative is read.
 - Region gain with an unconfirmed unit is reported but not applied.
@@ -187,9 +190,10 @@ The uninstaller has not been tested yet.
 | Audio exported from LUNA | Whole-dB region gain |
 | Only the SDK's mock LUNA | MIDI, automation, sends, and the new read-back checks for solo, mute, sends and bypass |
 | Browser with mock LUNA | The interface steps and the lock on the install step |
-| Version 0.2.0 automated tests | 43 Add On tests and 10 helper tests passed |
+| Only the SDK's mock LUNA | Track colors (new in 0.3.0) |
+| Version 0.3.0 automated tests | 46 Add On tests and 10 helper tests passed |
 
-**Still to verify:** the complete 0.2.0 workflow inside LUNA, the macOS pickers, saving to the
+**Still to verify:** the complete 0.3.0 workflow inside LUNA, how track colors look on screen, the macOS pickers, saving to the
 chosen folder, automatic startup after a restart, uninstalling, installing from the GitHub
 address, installer signing, and a second Mac. See the full checklist in
 [docs/TESTING.md](docs/TESTING.md).

@@ -8,7 +8,7 @@
    your email private, use the "noreply" address from GitHub's email settings.
 4. From this folder: `git init`, `git add .`, then **read `git status`** before committing.
 5. Push. Do not add anything under dist/ to the repository.
-6. Create a release tagged `v0.2.0`, titled "0.2.0 (beta)". Paste docs/RELEASE_NOTES.md.
+6. Create a release tagged `v0.3.0`, titled "0.3.0 (beta)". Paste docs/RELEASE_NOTES.md.
    Attach `dist/Logic-Importer.lunaaddon` and its `.sha256`. Attach no other `.lunaaddon`:
    LUNA's docs say a repository address installs every one in the latest release.
    LUNA's docs speak of the "latest release". GitHub does not treat a release marked

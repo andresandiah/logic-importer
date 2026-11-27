@@ -122,7 +122,7 @@ describe('manual to-do list', () => {
     const rows = reports.actions({
       log: [
         { status: 'not_transferred', channel: 'Bass', item: 'InPhase side-chain', detail: "Side-chain source 'Kick' must be reconnected by hand." },
-        { status: 'not_transferred', channel: null, item: 'Track colours', detail: 'x' },
+        { status: 'not_transferred', channel: null, item: 'Track color', detail: 'x' },
       ],
       plugins: [
         { channel: 'Vox', slot: 2, name: 'Nectar', loaded: false, reason: 'Missing.', params: [] },

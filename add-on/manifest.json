@@ -2,7 +2,7 @@
     "package_name": "Logic Importer",
     "id": "com.logicimporter.addon",
     "title": "Logic Importer",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "Builds a LUNA session from a converted Logic Pro project and reports what transferred.",
     "categories": ["Import & Export"],
     "sdk_version": "3.1.2",

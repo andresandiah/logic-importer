@@ -64,8 +64,8 @@ const ImportReport = (() => {
           .map((x) => `${x.name} → ${show(x.logic)}`).join('; ')}`);
       } else if (p.status === 'unknown') add('Check plug-in settings', p.channel, `${p.name}: its settings could not be compared.`);
     }
-    // Colours are cosmetic and listed in the full report only.
-    for (const l of result.log.filter((x) => x.status === 'not_transferred' && !sidechain.test(x.item) && x.item !== 'Track colours')) {
+    // A missed color is cosmetic: it is listed in the Not transferred section, not as a to-do.
+    for (const l of result.log.filter((x) => x.status === 'not_transferred' && !sidechain.test(x.item) && x.item !== 'Track color')) {
       add('Not transferred', l.channel, `${l.item}: ${l.detail}`);
     }
     for (const l of result.log.filter((x) => x.status === 'approximated')) add('Check by ear', l.channel, `${l.item}: ${l.detail}`);

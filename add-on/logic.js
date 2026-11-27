@@ -191,6 +191,26 @@ const AddOnLogic = (() => {
     return r.privateState.length ? 'parameters_only' : 'retained';
   }
 
+  // Logic Pro's track color picker (4 rows of 24), sampled from a screenshot of it, so the
+  // shades are close, not exact. A project stores a color as its position counted from 1:
+  // 16 is the default audio blue, 9 the instrument green, 24 the Stereo Out magenta.
+  const LOGIC_PALETTE = [
+    0xCA3C0F, 0xCA5B10, 0xCA7C10, 0xC9A511, 0xC9CA11, 0xA5C90F, 0x7FCA10, 0x5AC90F, 0x11C92F, 0x11C95A, 0x11C980, 0x11C9A4,
+    0x11CACA, 0x0FA4C9, 0x2696CF, 0x3582D4, 0x3E67D6, 0x4543D9, 0x5E40D6, 0x7739D4, 0x902ED1, 0xA510C9, 0xCA0FCA, 0xCA0FA5,
+    0xA33A19, 0xA45019, 0xA36A1A, 0xA38819, 0xA3A31A, 0x88A319, 0x6CA319, 0x51A31B, 0x1BA331, 0x1BA351, 0x1BA36D, 0x1BA388,
+    0x1BA3A3, 0x1988A3, 0x297DA6, 0x376EAB, 0x3C5BAE, 0x4341B0, 0x543EAD, 0x6639AB, 0x7A32AB, 0x881BA4, 0xA31AA3, 0xA31A88,
+    0x7D351E, 0x7D441E, 0x7D551E, 0x7D6A1D, 0x7D7D1D, 0x6A7D1E, 0x577D1E, 0x447D1E, 0x1E7D2E, 0x1E7D44, 0x1E7D57, 0x1E7D6A,
+    0x1E7D7D, 0x1F6A7D, 0x286280, 0x325882, 0x374C85, 0x3A3985, 0x473784, 0x533482, 0x612E82, 0x6A1E7D, 0x7D1E7D, 0x7D1E6A,
+    0x572A1C, 0x57331C, 0x573E1B, 0x574B1B, 0x57571C, 0x4B561C, 0x3F571D, 0x33571B, 0x1C5625, 0x1C5634, 0x1B563F, 0x1C564B,
+    0x1C5657, 0x1C4B56, 0x234759, 0x2A425C, 0x2C385C, 0x2E2D5C, 0x362C5C, 0x3E2A5C, 0x452759, 0x4B1C57, 0x571C57, 0x571C4B,
+  ];
+
+  /** The LUNA color (opaque ARGB) for a Logic color number, or undefined if it has none. */
+  function lunaColor(logicNumber) {
+    const rgb = Number.isInteger(logicNumber) ? LOGIC_PALETTE[logicNumber - 1] : undefined;
+    return rgb === undefined ? undefined : (0xFF000000 | rgb) >>> 0;
+  }
+
   // ------------------------------------------------------------------ import
 
   /**
@@ -316,6 +336,38 @@ const AddOnLogic = (() => {
 
     for (const [id, channel] of made) {
       await step(byId.get(id).name, 'Load channel controls', () => channel.loadStrip());
+    }
+
+    // ---- colors
+    progress('Setting track colors');
+    for (const c of manifest.channels) {
+      const channel = made.get(c.id);
+      if (!channel || c.logicColour == null) continue; // not in Logic's track list: LUNA's default
+      const wanted = lunaColor(c.logicColour);
+      await step(c.name, 'Track color', async () => {
+        if (wanted === undefined) throw new Error(`Logic color number ${c.logicColour} is not in the palette.`);
+        // Ask LUNA what it holds: the page shows a written value before LUNA accepts it.
+        const read = async () => {
+          const reply = await luna.raw.get(channel.path);
+          const color = (reply?.properties ?? reply ?? {}).color;
+          const value = color && typeof color === 'object' ? color.value : color;
+          return value == null ? value : Number(value) >>> 0;
+        };
+        const before = await read();
+        if (before === wanted) return;
+        await channel.color.set(wanted);
+        let held;
+        try {
+          await retry(async () => {
+            held = await read();
+            if (held !== wanted) throw new Error('not yet');
+            return true;
+          });
+        } catch {
+          if (held == null || held === before) throw new Error('LUNA did not apply the color.');
+          note('approximated', c.name, 'Track color', 'LUNA stored a different shade from the one requested.');
+        }
+      }, 'Track colors');
     }
 
     // ---- routing
@@ -641,7 +693,6 @@ const AddOnLogic = (() => {
     if (manifest.session.sampleRate) {
       note('warning', null, 'Sample rate', `The Logic project is ${manifest.session.sampleRate} Hz. Check the LUNA session's sample rate.`);
     }
-    note('not_transferred', null, 'Track colours', 'Colours are not transferred.');
     progress('Done');
     return { log, plugins: pluginResults, counts };
   }
@@ -725,7 +776,7 @@ const AddOnLogic = (() => {
     return session.playlistFor(track);
   }
 
-  return { FORMAT, parseManifest, summarize, matchPlugin, matchParam, writeParam, setClipGain, createSession, pluginStatus, importProject };
+  return { FORMAT, parseManifest, summarize, matchPlugin, matchParam, writeParam, setClipGain, createSession, lunaColor, pluginStatus, importProject };
 })();
 
 globalThis.AddOnLogic = AddOnLogic;

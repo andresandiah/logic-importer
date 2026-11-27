@@ -140,6 +140,50 @@ describe('import into LUNA', () => {
     });
   });
 
+  describe('track colors', () => {
+    it("maps Logic's color numbers, counted from 1, onto its picker", () => {
+      expect(logic.lunaColor(1)).toBe(0xFFCA3C0F); // first swatch, red
+      expect(logic.lunaColor(9)).toBe(0xFF11C92F); // instrument default, green
+      expect(logic.lunaColor(16)).toBe(0xFF3582D4); // audio default, blue
+      expect(logic.lunaColor(24)).toBe(0xFFCA0FA5); // Stereo Out, magenta
+      expect(logic.lunaColor(25)).toBe(0xFFA33A19); // second row starts
+      expect(logic.lunaColor(96)).toBe(0xFF571C4B); // last swatch
+      for (const none of [0, 97, -1, 1.5, null, undefined]) expect(logic.lunaColor(none)).toBeUndefined();
+      expect(new Set(Array.from({ length: 96 }, (_, i) => logic.lunaColor(i + 1))).size).toBe(96);
+    });
+
+    it('colors tracks and summing folders, the same number giving the same color', async () => {
+      const manifest = fixture('audio');
+      for (const c of manifest.channels) c.logicColour = c.kind === 'summing' ? 73 : 16;
+      const { session, result } = await run(manifest);
+      expect(result.counts['Track colors'].copied).toBe(result.counts['Track colors'].total);
+      expect(byName(session, 'Gitarren').color.value >>> 0).toBe(logic.lunaColor(73));
+      expect(byName(session, 'Audio 1').color.value >>> 0).toBe(logic.lunaColor(16));
+      expect(byName(session, 'Audio 3').color.value >>> 0).toBe(logic.lunaColor(16));
+    });
+
+    it('reports colors LUNA ignores or numbers it does not know, and carries on', async () => {
+      const manifest = fixture('sends');
+      manifest.channels.forEach((c, i) => { c.logicColour = i ? 73 : 500; });
+      const engine = new Luna.MockEngine();
+      engine.addSession('abc', { name: 'New', tracks: [] });
+      const luna = await Luna.connect({ port_: engine.port() });
+      const session = await luna.session();
+      const ignores = new Proxy(luna, {
+        get: (target, key) => (key === 'raw'
+          ? { ...target.raw, get: async (path, options) => (/\/(tracks|buses)\/[^/]+$/.test(path) ? { properties: { color: { value: 1 } } } : target.raw.get(path, options)) }
+          : Reflect.get(target, key)),
+      });
+      const result = await logic.importProject(ignores, session, manifest, { settleMs: 120 });
+      expect(result.counts['Track colors'].copied).toBe(0);
+      const details = result.log.filter((l) => l.item === 'Track color').map((l) => l.detail);
+      expect(details).toContain('Logic color number 500 is not in the palette.');
+      expect(details).toContain('LUNA did not apply the color.');
+      expect(done(result, 'Sends')).toBeDefined();
+      expect(reports.actions(result).some((r) => r[2].startsWith('Track color'))).toBe(false);
+    });
+  });
+
   it('sets faders and writes volume and pan automation', async () => {
     const { session, result } = await run(fixture('automation'));
     expect(done(result, 'Automation lanes')).toBe('3/3');

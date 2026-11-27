@@ -1,6 +1,6 @@
-# Logic Importer (beta, unofficial)
+# Logic Importer 0.3.0 (beta, unofficial)
 
-Builds a new LUNA session from a Logic Pro project. **It is not an exact copy.**
+Builds a new LUNA session from a Logic Pro project, including similar track colors. **It is not an exact copy.**
 Needs a Mac with Apple silicon, LUNA 3.1.2 or later, and a saved Logic project.
 
 1. **Install the helper** (once). In the Add On click "Get the helper installer" and run it.

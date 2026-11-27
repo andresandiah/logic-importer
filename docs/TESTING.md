@@ -11,6 +11,7 @@ Use a second Apple silicon Mac with LUNA, and copies of non-private Logic projec
 - [ ] The new session is saved in the chosen folder.
 - [ ] Sends (level, pre-fader, mute), mute, solo and a bypassed plug-in match in LUNA.
 - [ ] MIDI notes, controllers, pitch bend and volume, pan and plug-in automation match.
+- [ ] Track, summing folder and bus colors are visible and close to the colors in Logic.
 - [ ] "Copy this version" and "Save both as file" work inside LUNA.
 - [ ] Delete the export folder; reopen the session; all audio still plays.
 - [ ] Update over an installed version; the helper reconnects.
