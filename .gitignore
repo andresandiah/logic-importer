@@ -1,0 +1,24 @@
+# Built or downloaded
+.deps/
+.venv/
+build/
+dist/
+add-on/node_modules/
+add-on/vendor/
+add-on/licenses/
+add-on/helper-installer/
+add-on/README.md
+__pycache__/
+*.pyc
+*.pkg
+*.lunaaddon
+
+# Private: the helper's key, and anything made from a user's project
+add-on/helper-config.js
+*.logicx/
+*.lunaimport.json
+*import report*
+* for LUNA/
+.env
+.DS_Store
+.claude/

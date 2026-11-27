@@ -1,0 +1,16 @@
+{
+  "name": "logic-importer",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "description": "Logic Importer: a LUNA Add On that builds a LUNA session from a Logic Pro project",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@uaudio/luna-builder-sdk": "git+https://github.com/uaudio-labs/luna-builder-sdk.git#62b8d383a1a33502d6dd170c92c359dcc0014f90",
+    "vite": "8.3.0",
+    "vitest": "5.0.1"
+  },
+  "license": "Apache-2.0"
+}

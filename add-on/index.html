@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Logic Importer</title>
+  <style>
+    :root { color-scheme: dark; --accent: #F7C449; --line: #333; --muted: #9a9a9a; }
+    body { margin: 0; background: #151515; color: #ddd; font: 14px -apple-system, Helvetica, sans-serif; display: flex; flex-direction: column; height: 100vh; }
+    header { display: flex; gap: 12px; align-items: baseline; padding: 10px 16px; background: #222; border-bottom: 1px solid var(--line); }
+    header strong { white-space: nowrap; }
+    #status { margin-left: auto; color: var(--muted); text-align: right; }
+    main { flex: 1; overflow: auto; padding: 14px 16px 28px; }
+    button, input[type="text"] { font: inherit; background: #2a2a2a; color: #ddd; border: 1px solid #444; border-radius: 6px; padding: 6px 14px; }
+    button { cursor: pointer; }
+    button:disabled { opacity: 0.4; cursor: default; }
+    button.on, button.primary:not(:disabled) { background: var(--accent); color: #000; border-color: var(--accent); }
+    .step { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; }
+    .step h2 { margin: 0 0 4px; font-size: 16px; display: flex; gap: 10px; align-items: center; }
+    .num { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1px solid #555; font-size: 13px; }
+    .step.active { border-color: var(--accent); }
+    .step.done .num { background: var(--accent); border-color: var(--accent); color: #000; }
+    .step.locked { opacity: 0.5; }
+    .hint { color: var(--muted); margin: 4px 0 10px; line-height: 1.5; }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+    .path { font: 12px Menlo, monospace; color: #cfcfcf; word-break: break-all; user-select: text; -webkit-user-select: text; }
+    .note { background: #262218; border: 1px solid #5a4c1f; border-radius: 8px; padding: 8px 12px; line-height: 1.5; }
+    .progress { font-size: 13px; color: var(--accent); }
+    .error { color: #ff8a80; white-space: pre-wrap; }
+    #sessionName { width: 340px; max-width: 100%; }
+    ol.hint { padding-left: 20px; }
+    details { margin-top: 8px; color: var(--muted); }
+    #drop { border: 1px dashed #555; border-radius: 8px; padding: 10px; margin-top: 8px; }
+    #drop.over { border-color: var(--accent); }
+    .bar { display: flex; flex-wrap: wrap; gap: 8px; }
+    .bar .spacer { flex: 1; }
+    #reportBody { user-select: text; -webkit-user-select: text; }
+    #reportBody h1 { font-size: 18px; }
+    #reportBody h2 { font-size: 15px; margin-top: 22px; color: var(--accent); display: block; }
+    #reportBody h3 { font-size: 14px; margin-top: 16px; }
+    .scroll { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; margin: 6px 0 12px; font-size: 12.5px; }
+    th, td { border-bottom: 1px solid #2c2c2c; padding: 5px 8px; text-align: left; vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; }
+    td.modified { color: #000; background: var(--accent); font-weight: 700; }
+  </style>
+</head>
+<body>
+  <header><strong>Logic Importer</strong><div id="status" role="status">Connecting…</div></header>
+  <main>
+        <section class="step" id="step1">
+      <h2><span class="num">1</span> Before proceeding, install the helper</h2>
+      <div id="installHow">
+        <p class="hint">The helper is a small Mac app that reads your Logic project. You install it once, and it starts by itself when you log in.
+          It is included with this Add On. Needs a Mac with Apple silicon.</p>
+        <div class="row"><button id="getInstaller" class="primary">Get the helper installer</button><span class="hint">Shows <b>Logic Importer Helper.pkg</b> in Finder.</span></div>
+        <ol class="hint">
+          <li>Double-click <b>Logic Importer Helper.pkg</b> and follow the installer. It asks for your Mac password.</li>
+          <li>If macOS says it cannot verify the installer: open <b>System Settings &gt; Privacy &amp; Security</b>, scroll down, click <b>Open Anyway</b>.</li>
+          <li>Come back here and answer below.</li>
+        </ol>
+        <div id="installerFallback" class="note" hidden>If Finder did not open: in Finder choose <b>Go &gt; Go to Folder…</b> and paste<br><span id="installerPath" class="path"></span></div>
+        <div class="row" id="installQuestion"><b>Did you install the helper?</b><button id="helperYes">Yes</button><button id="helperNo">No</button></div>
+        <p id="installMessage" role="status"></p>
+      </div>
+      <div id="installDone" hidden>
+        <p>The helper is installed and running.</p>
+        <div id="installLocation" class="note">
+          <b>Installed in:</b> <span id="helperFolder" class="path"></span><br>
+          <b>Starts at login through:</b> <span id="helperAgent" class="path"></span><br>
+          <b>To uninstall it later:</b> open that folder and double-click <b>Uninstall Logic Importer Helper</b>.
+          In Finder, use <b>Go &gt; Go to Folder…</b> to get there. <button id="showHelper">Show in Finder</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="step locked" id="step2">
+      <h2><span class="num">2</span> Export Logic Metadata</h2>
+      <p class="hint">Save your project in Logic, then choose the project (<b>.logicx</b>) or the folder that holds it.
+        The project is only read. Third-party plug-ins in it are loaded one at a time to read their settings.</p>
+      <div class="row">
+        <button id="pickProject">Choose project…</button>
+        <button id="pickProjectFolder">Choose project folder…</button>
+      </div>
+      <div id="projectPath" class="path"></div>
+      <div class="row"><button id="export" class="primary" disabled>Export Logic Metadata</button><span id="exportProgress" class="progress" role="status"></span></div>
+      <p id="exportError" class="error" role="alert"></p>
+      <div id="exportDone" hidden>
+        <p id="summary"></p>
+        <div id="exportNote" class="note">
+          The export is in <span id="exportFolder" class="path"></span><br>
+          <b>You can delete this folder after the import finishes</b> and you have saved the new LUNA session
+          and checked that its audio plays. The import copies the audio into the LUNA session.
+          Keep it until then. <button id="reveal">Show in Finder</button>
+        </div>
+      </div>
+      <details>
+        <summary>I already have an export file</summary>
+        <div id="drop">Drop a <b>.lunaimport.json</b> file here, or choose it: <input id="file" type="file" accept=".json,application/json"></div>
+      </details>
+    </section>
+
+    <section class="step locked" id="step3">
+      <h2><span class="num">3</span> Choose the output folder and import</h2>
+      <p class="hint">A <b>new</b> LUNA session is created in the folder you choose. Sessions you already have are not edited.
+        LUNA switches to the new session, so save your current one first. Keep this window open until the import finishes.</p>
+      <div class="row"><button id="pickOutput" disabled>Choose output folder…</button><span id="outputPath" class="path"></span></div>
+      <div class="row"><label for="sessionName">Session name</label><input id="sessionName" type="text" disabled></div>
+      <div class="row"><button id="import" class="primary" disabled>Begin session import</button><span id="importProgress" class="progress" role="status"></span></div>
+      <p id="importError" class="error" role="alert"></p>
+    </section>
+
+    <section class="step locked" id="step4">
+      <h2><span class="num">4</span> Check the report</h2>
+      <p class="hint" id="reportHint">After the import, everything that failed or needs a manual step is listed here, such as side-chain assignments.</p>
+      <div id="report" hidden>
+        <div class="bar">
+          <button id="tab-simplified">Simplified</button>
+          <button id="tab-extended">Extended version</button>
+          <span class="spacer"></span>
+          <button id="copy">Copy this version</button>
+          <button id="save">Save both as file</button>
+        </div>
+        <div id="reportBody"></div>
+      </div>
+    </section>
+  </main>
+  <script src="vendor/luna.global.js"></script>
+  <!-- Written on this Mac by the helper; absent until it has run once. -->
+  <script src="helper-config.js"></script>
+  <script src="logic.js"></script>
+  <script src="report.js"></script>
+  <script src="wizard.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

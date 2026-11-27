@@ -1,0 +1,11 @@
+# What the converter and helper run on (bundled into the installer).
+groovebin==0.6.0
+markdown-it-py==4.3.0
+mdurl==0.1.2
+nanoid==2.0.0
+pw-foundation==1.0.0
+Pygments==2.21.0
+python-dotenv==1.2.4
+PyYAML==6.0.4
+rich==15.0.0
+structlog==26.1.0

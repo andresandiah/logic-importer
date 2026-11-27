@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="2">
+  <title>Logic Importer Helper</title>
+  <welcome file="welcome.html"/>
+  <conclusion file="conclusion.html"/>
+  <options customize="never" require-scripts="false" hostArchitectures="arm64"/>
+  <domains enable_localSystem="true" enable_currentUserHome="false" enable_anywhere="false"/>
+  <choices-outline><line choice="helper"/></choices-outline>
+  <choice id="helper" title="Logic Importer Helper"><pkg-ref id="com.logicimporter.helper"/></choice>
+  <pkg-ref id="com.logicimporter.helper" version="0.2.0">component.pkg</pkg-ref>
+</installer-gui-script>

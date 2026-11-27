@@ -1,0 +1,5 @@
+#!/bin/sh
+# Updating: stop a running helper first.
+user_id=$(stat -f %u /dev/console)
+[ "$user_id" != "0" ] && launchctl bootout "gui/$user_id/com.logicimporter.helper" 2>/dev/null
+exit 0

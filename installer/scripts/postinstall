@@ -1,0 +1,7 @@
+#!/bin/sh
+# Start the helper now for the person at the screen; at later logins macOS starts it.
+user_id=$(stat -f %u /dev/console)
+if [ "$user_id" != "0" ]; then
+  launchctl bootstrap "gui/$user_id" /Library/LaunchAgents/com.logicimporter.helper.plist 2>/dev/null
+fi
+exit 0
